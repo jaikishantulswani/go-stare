@@ -11,6 +11,7 @@ import (
 	"path"
 	"regexp"
 	"sync"
+	"strings"
 	"time"
 
 	"github.com/chromedp/cdproto/emulation"
@@ -33,6 +34,7 @@ type Config struct {
 }
 
 // New to proceed screenshots
+// New to proceed screenshots
 func New(cfg *Config) {
 	var wg sync.WaitGroup
 	jobs := make(chan string)
@@ -53,19 +55,18 @@ func New(cfg *Config) {
 
 	for cfg.URL.Scan() {
 		u := cfg.URL.Text()
-		if isURL(u) {
-			jobs <- u
+		// Check if the URL has a protocol, if not, try both "http://" and "https://"
+		if !strings.HasPrefix(u, "http") {
+			jobs <- "http://" + u
+			jobs <- "https://" + u
 		} else {
-			if cfg.Verbose {
-				fmt.Fprintf(os.Stderr, "[%s] Invalid URL of %s\n", aurora.Red("!"), aurora.Red(u))
-			}
+			jobs <- u
 		}
 	}
 
 	close(jobs)
 	wg.Wait()
 }
-
 func (cfg *Config) exec(url string) {
 	if err := chromedp.Run(cfg.Context, screenshot(url, cfg.Quality, &cfg.Buffer)); err != nil {
 		if cfg.Verbose {
