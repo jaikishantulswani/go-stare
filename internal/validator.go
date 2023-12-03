@@ -14,14 +14,17 @@ func Validator(cfg *stare.Config) {
 	if isStdin() {
 		cfg.URL = bufio.NewScanner(os.Stdin)
 	} else if cfg.Target != "" {
-		targetURL := cfg.Target
-		if !strings.HasPrefix(targetURL, "http://") && !strings.HasPrefix(targetURL, "https://") {
-			// If the target URL doesn't have a protocol, prepend "https://" and "http://"
-			targetURL = "https://" + targetURL
-			targetURL = "http://" + targetURL
+		if strings.HasPrefix(cfg.Target, "http") {
+			cfg.URL = bufio.NewScanner(strings.NewReader(cfg.Target))
+		} else {
+			r, err := os.Open(cfg.Target)
+			if err != nil {
+				gologger.Errorf("Invalid '%s' URL or file!", cfg.Target)
+				gologger.Infof("Use -h flag for more info about command.")
+				os.Exit(1)
+			}
+			cfg.URL = bufio.NewScanner(r)
 		}
-
-		cfg.URL = bufio.NewScanner(strings.NewReader(targetURL))
 	} else {
 		gologger.Errorf("No target inputs provided!")
 		gologger.Infof("Use -h flag for more info about command.")
