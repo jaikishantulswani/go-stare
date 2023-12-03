@@ -60,6 +60,8 @@ In order to update the tool, you can use `-u` flag with go get command.
 
 ## Usage
 
+###No need to provide protol http or https
+
 ### Basic Usage
 
 Simply, go-stare can be run with:
